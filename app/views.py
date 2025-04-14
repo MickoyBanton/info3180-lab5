@@ -42,6 +42,7 @@ def movies():
 
             new_movie = Movie(title=title, description=description, poster=filename)
             db.session.add(new_movie)
+            db.session.commit()
 
 
             return jsonify({
@@ -57,6 +58,25 @@ def movies():
                 "errors": form_errors(movieForm)
             }), 400
         
+
+    elif request.method == 'GET':
+        movies = Movie.query.all()
+        movie_list = []
+        for movie in movies:
+            movie_list.append({
+                "id": movie.id,
+                "title": movie.title,
+                "description": movie.description,
+                "poster": f"/api/v1/posters/{movie.poster}"
+            })
+
+        return jsonify({"movies": movie_list})
+
+@app.route('/api/v1/posters/<filename>')
+def get_poster(filename):
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+
 @app.route('/api/v1/csrf-token', methods=['GET'])
 def get_csrf():
     return jsonify({'csrf_token': generate_csrf()})
